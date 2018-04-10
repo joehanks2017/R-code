@@ -5,7 +5,7 @@ Attribute Information:
 
 Input variables:
 # bank client data:
-1 - age (numeric)
+1 - age (numeric) <br>
 2 - job : type of job (categorical: 'admin.','blue-collar','entrepreneur','housemaid','management','retired','self-employed','services','student','technician','unemployed','unknown')
 3 - marital : marital status (categorical: 'divorced','married','single','unknown'; note: 'divorced' means divorced or widowed)
 4 - education (categorical: 'basic.4y','basic.6y','basic.9y','high.school','illiterate','professional.course','university.degree','unknown')
@@ -27,7 +27,7 @@ Output variable (desired target):
 21 - y - has the client subscribed a term deposit? (binary: 'yes','no')
 
 
-Relevant Papers:
+# Relevant Papers:
 
 S. Moro, P. Cortez and P. Rita. A Data-Driven Approach to Predict the Success of Bank Telemarketing. Decision Support Systems, Elsevier, 62:22-31, June 2014
 
