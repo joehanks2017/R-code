@@ -140,11 +140,11 @@ library(rpart)
 library(rpart.plot)
 
 #Entropy#
-tree = rpart(y ~ education+contact+duration+housing+loan+job+poutcome+campaign, 
+tree = rpart(y ~ ., 
              data =ATrain, method = "class", parms = list(split = "information"))
 printcp(tree)
 #GINI Index#
-tree = rpart(y ~ education+contact+duration+housing+loan+job+poutcome+campaign, 
+tree = rpart(y ~  ., 
              data =ATrain, method = "class", parms = list(split = "gini"))
 printcp(tree)
 
