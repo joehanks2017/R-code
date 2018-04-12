@@ -4,14 +4,14 @@ library(tidyverse)
 A = read_csv('bank-full.csv')
 str(A)
 
-#plot each feature#
+#Exploratory data analysis
 ggplot(data = A, mapping = aes(x = age, y = campaign, color = y)) +
   geom_point()
 
 ggplot(data = A, mapping =aes(x = y, y = previous)) +
   geom_boxplot()
 
-#Heat map#
+#Heat map
 A_y_marital = A %>% group_by(y, marital) %>% summarise(count = n())
 ggplot(data = A_y_marital, mapping = aes(x = y, y = marital)) +
   geom_tile(mapping = aes(fill = count), color = "white") +
@@ -57,7 +57,7 @@ ggplot(data = A_y_poutcome, mapping = aes(x = y, y = poutcome)) +
   geom_tile(mapping = aes(fill = count), color = "white") +
   scale_fill_gradient(low = "white", high ="steelblue")
 
-#Select features#
+#Select features
 A = mutate(A, y=as.factor(A$y)) %>%
   mutate(default=as.factor(A$default)) %>%
   mutate(education=as.factor(A$education)) %>%
@@ -71,60 +71,39 @@ A = select(A, y, duration, education, contact, default, housing, loan, marital, 
 head(A)
 str(A)
 
-#Split Test/Train#
+#Split Test/Train
 set.seed(777)
 trainIndex = createDataPartition(A$y, p = 0.8, list = FALSE, times = 1)
 ATrain = A[ trainIndex,]
 ATest = A[-trainIndex,]
 
-#Center and scale Data#
+#Center and scale Data
 scaler = preProcess(ATrain, method = c("center", "scale"))
 ATrain = predict(scaler, ATrain)
 ATest = predict(scaler, ATest)
 head(ATrain)
 
-#Backward feature selection#
-#1st Round#
-#no marital#
-knnModel = train(y ~ education+contact+duration+housing+loan+job+poutcome+campaign+default, 
+#Backward feature selection
+#1st Round
+#no marital
+knnModel = train(y ~ .-marital, 
                  data = ATrain, method = "knn", trControl=trainControl(method='none'), tuneGrid=data.frame(k=20))
 ATestPrediction = predict(knnModel, ATest)
 confusionMatrix(ATestPrediction, ATest$y)
-#Plots of real and predicted#
-pred_ATest = mutate(ATest, pred_y = ATestPrediction)
-pred_real_1 = pred_ATest %>% group_by(y, pred_y) %>% summarise(count = n())
-ggplot(data = pred_real_1, mapping = aes(x = y, y = pred_y)) +
-  geom_tile(mapping = aes(fill = count), color = "white") +
-  scale_fill_gradient(low = "white", high ="steelblue")
 
-#2nd Round#
-#no default#
-knnModel = train(y ~ education+contact+duration+housing+loan+job+poutcome+campaign, 
+#2nd Round
+#no default
+knnModel = train(y ~ .-marital-default, 
                  data = ATrain, method = "knn", trControl=trainControl(method='none'), tuneGrid=data.frame(k=20))
 ATestPrediction = predict(knnModel, ATest)
 confusionMatrix(ATestPrediction, ATest$y)
-#Plots of real and predicted#
-pred_ATest = mutate(ATest, pred_y = ATestPrediction)
-pred_real_1 = pred_ATest %>% group_by(y, pred_y) %>% summarise(count = n())
-ggplot(data = pred_real_1, mapping = aes(x = y, y = pred_y)) +
-  geom_tile(mapping = aes(fill = count), color = "white") +
-  scale_fill_gradient(low = "white", high ="steelblue")
 
-#3rd Round#
-#no contact#
-knnModel = train(y ~ education+job+duration+housing+loan+poutcome+campaign, 
+#3rd Round
+#no contact
+knnModel = train(y ~ . -marital-default-contact, 
                  data = ATrain, method = "knn", trControl=trainControl(method='none'), tuneGrid=data.frame(k=20))
 ATestPrediction = predict(knnModel, ATest)
 confusionMatrix(ATestPrediction, ATest$y)
-#Plots of real and predicted#
-pred_ATest = mutate(ATest, pred_y = ATestPrediction)
-pred_real_1 = pred_ATest %>% group_by(y, pred_y) %>% summarise(count = n())
-ggplot(data = pred_real_1, mapping = aes(x = y, y = pred_y)) +
-  geom_tile(mapping = aes(fill = count), color = "white") +
-  scale_fill_gradient(low = "white", high ="steelblue")
-
-
-
 
 #LR model building(Better Method)
 library(glmnet)
@@ -135,26 +114,27 @@ prediction = predict(lr, ATest, type = "class", s = 0.01)
 confusionMatrix(prediction, ATest$y)
 
 
-#Build Decision Tree#
+#Build Decision Tree
 library(rpart)
 library(rpart.plot)
 
-#Entropy#
+#Entropy
 tree = rpart(y ~ ., 
              data =ATrain, method = "class", parms = list(split = "information"))
 printcp(tree)
-#GINI Index#
+ATestPrediction = predict(tree, ATest, type = "class")
+confusionMatrix(ATestPrediction, ATest$y)
+#GINI Index
 tree = rpart(y ~  ., 
              data =ATrain, method = "class", parms = list(split = "gini"))
 printcp(tree)
+ATestPrediction = predict(tree, ATest, type = "class")
+confusionMatrix(ATestPrediction, ATest$y)
 
-#Plot the tree#
+#Plot the tree
 opar = par(no.readonly = T)
 par(mfrow=c(1,2))
 rpart.plot(tree,branch=1, type=4,fallen.leaves=T,cex=0.8, sub = "CART(gini)")
 par(opar)
 
-#Accuracy#
-ATestPrediction = predict(tree, ATest, type = "class")
-confusionMatrix(ATestPrediction, ATest$y)
 
