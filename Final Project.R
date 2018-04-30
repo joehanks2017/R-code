@@ -115,20 +115,25 @@ confusionMatrix(prediction, ATest$y)
 #Build Decision Tree#
 library(rpart)
 library(rpart.plot)
+
 #Entropy
-tree = rpart(y ~ ., data =ATrain, method = "class", parms = list(split = "information"))
-printcp(tree)
+tree1 = rpart(y ~ ., data =ATrain, method = "class", parms = list(split = "information"))
+printcp(tree1)
+plotcp(tree1)
+summary(tree1)
+#plot
+rpart.plot(tree1,branch=1, type=1,fallen.leaves=T,cex=0.5, sub = "CART(info)")
+#matrix
+ATestPrediction1 = predict(tree1, ATest, type = "class")
+confusionMatrix(ATestPrediction1, ATest$y)
+
 #GINI Index
-tree = rpart(y ~ ., data =ATrain, method = "class", parms = list(split = "gini"))
-printcp(tree)
-
-#Plot the tree
-opar = par(no.readonly = T)
-par(mfrow=c(1,2))
-rpart.plot(tree,branch=1, type=4,fallen.leaves=T,cex=0.8, sub = "CART(gini)")
-par(opar)
-
-#Accuracy
-ATestPrediction = predict(tree, ATest, type = "class")
-confusionMatrix(ATestPrediction, ATest$y)
-
+tree2 = rpart(y ~ ., data =ATrain, method = "class", parms = list(split = "gini"))
+printcp(tree2)
+plotcp(tree2)
+summary(tree2)
+#plot
+rpart.plot(tree2,branch=1, type=1,fallen.leaves=T,cex=0.5, sub = "CART(gini)")
+#matrix
+ATestPrediction2 = predict(tree2, ATest, type = "class")
+confusionMatrix(ATestPrediction2, ATest$y)
